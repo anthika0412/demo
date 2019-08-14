@@ -2,17 +2,19 @@ import React, { Component } from 'react'
 import {
     TouchableOpacity,
     View,
-    CameraRoll,
     GetPhotosParamType,
     GetPhotosReturnType,
     FlatList,
     ActivityIndicator,
     Image,
     Text,
-    Modal
+    Modal,
+    Dimensions
 } from 'react-native'
-import { Layout } from '../../constants';
 import ImageResizer from 'react-native-image-resizer';
+import CameraRoll from '@react-native-community/cameraroll'
+
+const Layout = Dimensions.get("window")
 
 const DEFAULT_OPTIONS: GetPhotosParamType = {
     first: 100,
@@ -29,6 +31,7 @@ export default class ImagePickerScreen extends Component {
             hasNext: false,
             refresh: false
         }
+        // this.getPhotos()
     }
     
     componentDidMount() {
@@ -36,15 +39,15 @@ export default class ImagePickerScreen extends Component {
     }
 
     getPhotos = () => {
-        const options = this.props.navigation.getParam('options', {})
+        // const { options } = this.props //.navigation.getParam('options', {})
         this.setState({ refresh: true }, () => {
-            CameraRoll.getPhotos({ ...DEFAULT_OPTIONS, ...options }).then((response) => {
+            CameraRoll.getPhotos({ ...DEFAULT_OPTIONS }).then((response) => {
                 this.setState({ refresh: false }, () => {
                     console.log("getPhotos response:", response)
-                    this.setState({
-                        photos: response.edges,
-                        hasNext: response.page_info.has_next_page
-                    })
+                    // this.setState({
+                    //     photos: response.edges,
+                    //     hasNext: response.page_info.has_next_page
+                    // })
                 })
             }).catch((error) => {
                 this.setState({ refresh: false })
@@ -54,7 +57,7 @@ export default class ImagePickerScreen extends Component {
 
     getMorePhotos = async () => {
         if (this.state.hasNext) {
-            await CameraRoll.getPhotos({ ...DEFAULT_OPTIONS, ...this.props.options }).then((response) => {
+            await CameraRoll.getPhotos({ ...DEFAULT_OPTIONS }).then((response) => {
                 console.log("getMorePhotos response:", response)
                 this.setState({
                     photos: [ ...this.state.photos, ...response.edges ],
@@ -65,14 +68,15 @@ export default class ImagePickerScreen extends Component {
     }
 
     onSelectedPhoto = async (photo) => {
-        const onSelectedPhoto = this.props.navigation.getParam('onSelectedPhoto', () => null)
-        const { image } = photo.node
-        const resizer = await ImageResizer.createResizedImage(image.uri, image.width, image.height, "JPEG", 60)
-        onSelectedPhoto(resizer, photo.node.type)
-        this.props.navigation.goBack()
+        // const onSelectedPhoto = this.props.navigation.getParam('onSelectedPhoto', () => null)
+        // const { image } = photo.node
+        // const resizer = await ImageResizer.createResizedImage(image.uri, image.width, image.height, "JPEG", 60)
+        // onSelectedPhoto(resizer, photo.node.type)
+        // this.props.navigation.goBack()
     }
 
     render () {
+        console.log("render image picker")
         return <Modal animated
             animationType={"fade"}
             visible={this.props.visible}>
@@ -86,13 +90,13 @@ export default class ImagePickerScreen extends Component {
                             <Image local key={item.node.image.uri}
                                 uri={item.node.image.uri}
                                 style={{
-                                    width: Layout.window.width / 3,
-                                    height: Layout.window.width / 3
+                                    width: Layout.width / 3,
+                                    height: Layout.width / 3
                                 }} />
                             </TouchableOpacity>
                     }}
-                    onEndReached={this.getMorePhotos}
-                    onRefresh={this.getPhotos}
+                    // onEndReached={this.getMorePhotos}
+                    // onRefresh={this.getPhotos}
                     refreshing={this.state.refresh}
                     ListFooterComponent={this.state.hasNext ? <ActivityIndicator style={{ alignSelf: "center" }} /> : null} />
             </Modal>
